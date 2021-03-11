@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import ApiError from "../error/ApiError.js"
 import User from '../model/user.js';
+import Wallet from "../model/wallet.js";
 
 export const userRegister = async (req, res, next) => {
     try{
@@ -31,6 +32,9 @@ export const userRegister = async (req, res, next) => {
         if(user instanceof ApiError){
             return next(user)
         }
+
+        // If User Successfully Registered. Initialize new Instance of Wallet
+        await Wallet.createUserWallet(user._id)
 
         // If All Validation is Passed. Send Status of 201 CREATED
         res.sendStatus(201)
