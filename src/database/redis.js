@@ -1,4 +1,4 @@
-import redis from redis;
+import redis from 'redis';
 
 const { REDIS_PORT, REDIS_HOST } = process.env
 
