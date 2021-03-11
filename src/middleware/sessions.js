@@ -8,12 +8,12 @@ const { SESSION_SECRET, SESSION_EXPIRY } = process.env
 const sessionOptions = {
     store: new RedisStore({ client: redisClient }),
     secret: SESSION_SECRET,
-    saveUnintialized: false,
+    saveUninitialized: false,
     resave: false,
     name: "sessionID",
     cookie: {
-        secure: true,
-        sameSite: true,
+        secure: false,
+        sameSite: false,
         httpOnly: true,
         maxAge: +SESSION_EXPIRY
     }
