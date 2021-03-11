@@ -8,7 +8,13 @@ const getStockPrices = async (tickers = []) => {
 
 	try {
         const stockPrices = []
+
+        // Loop through array of Stock Tickers passed in as argument
         for(let ticker of tickers){
+
+            // The URL will differ based on which exchange the stock trades in. For simplicity it will only fetch from
+            // NASDAQ, NYSE, TSX, and TSXV. US Stocks does not require a suffix while Canadian Stocks do
+
             let url = ""
             if(ticker.market.toUpperCase() === 'V' || ticker.market.toUpperCase() === 'TO'){
                 url = `https://ca.finance.yahoo.com/quote/${ticker.symbol}.${ticker.market}`
@@ -16,9 +22,12 @@ const getStockPrices = async (tickers = []) => {
                 url = `https://ca.finance.yahoo.com/quote/${ticker.symbol}`
             }
 
+
+            // Load Webpage and Scrape
             const { data } = await axios.get(url)
             const $ = cheerio.load(data);
 
+            // Adding suffix for Canadian Stocks while US Stocks does not require one
             if(ticker.market.toUpperCase() === 'V' || ticker.market.toUpperCase() === 'TO'){
                 stockPrices.push({
                     ticker: `${ticker.symbol}.${ticker.market}`,
