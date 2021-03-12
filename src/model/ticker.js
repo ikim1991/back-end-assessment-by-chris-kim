@@ -154,14 +154,20 @@ tickerSchema.statics.updateMarketValue = async (ticker, portfolioId) => {
 
 tickerSchema.statics.buyStock = async function(ticker, shares, userId, portfolioId){
     try{
-
+        
+        // Find Stock from Watchlist
         const stock = await Ticker.findOne({ ticker, user: userId })
+        // Grab User Wallet to Validate Sufficient Funds
         const wallet = await Wallet.findWalletById(userId)
+        // Current Market Price of Stock the User is Buying At
         const purchasePrice = +stock.price
+        // The Total Valuation of Purchase
         const bookValue = +purchasePrice * +shares
 
+        // Check to see that users has enough funds
         const sale = await wallet.sufficientFunds(bookValue)
 
+        // If user does not currently own the stock and the sale is authorized. Create new holdings
         if(!stock.portfolio && sale){
             await Ticker.findOneAndUpdate({ ticker, user: userId }, { shares, purchasePrice, bookValue, portfolio: portfolioId })
             await wallet.decrementBalance(bookValue)
@@ -169,6 +175,7 @@ tickerSchema.statics.buyStock = async function(ticker, shares, userId, portfolio
             return true
         }
 
+        // If user already owns the stock and is buying more, add to holdings
         if(sale){
             const totalBookValue = +stock.bookValue + +bookValue
             const totalShares = +stock.shares + +shares
@@ -188,20 +195,26 @@ tickerSchema.statics.buyStock = async function(ticker, shares, userId, portfolio
 
 tickerSchema.statics.sellStock = async function(ticker, shares, userId, portfolioId){
     try{
+        // Find Stock from Watchlist
         const stock = await Ticker.findOne({ ticker, user: userId })
+        // To Add Money to Users Wallet if Sale is Authorized
         const wallet = await Wallet.findWalletById(userId)
+        // Total Amount the User is Selling for
         const sellValue = +stock.price * +shares
 
+        // If the User does not own the stock, the sale is unauthorized
         if(!portfolioId){
             return ApiError.badRequest("You do Not Own the Stock...")
         }
 
+        // Cannot sell more shares than you hold
         if(+shares > +stock.shares){
             return ApiError.badRequest("Unable to sell Shares... Exceeding Number of Shares")
         } else if(+shares === +stock.shares){
+            // If selling 100% of position, deleting off of portfolio
             await Ticker.deleteOne({ ticker, user: userId })
         } else{
-
+            // Selling a portion of position
             const newBook = +stock.bookValue - +sellValue
             const sharesAfterSale = +stock.shares - +shares
             const averagePurchasePrice = (+newBook / +sharesAfterSale)
