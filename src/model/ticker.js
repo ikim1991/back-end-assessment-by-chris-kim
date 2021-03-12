@@ -43,6 +43,16 @@ export const tickerSchema = new mongoose.Schema({
     }
 })
 
+tickerSchema.statics.updateSharePrice = async (stock) => {
+    try{
+        await Ticker.updateOne({ ticker: stock.ticker }, { price: stock.price, change: stock.change })
+
+        return
+    }catch(err){
+        return ApiError.internal("Something went Wrong... updateSharePrice")
+    }
+}
+
 tickerSchema.statics.getWatchlist = async (watchlistId) => {
     try{
         
@@ -110,8 +120,6 @@ tickerSchema.statics.removeTickerFromWatchlist = async (userId, ticker) => {
         await stock.save()
 
         return stock
-
-        
 
     }catch(err){
         return ApiError.internal("Something went Wrong... removeFromWatchlist")

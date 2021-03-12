@@ -24,7 +24,6 @@ const userSchema = new mongoose.Schema({
 
 userSchema.statics.createNewUser = async (email, username, password) => {
     try{
- 
         const user = await User.create({ email, username, password })
         
         return user
@@ -46,7 +45,6 @@ userSchema.statics.findUserById = async (id) => {
 
 userSchema.statics.findUserByEmail = async (email) => {
     try{
-        
         const user = await User.findOne({email})
 
         return user

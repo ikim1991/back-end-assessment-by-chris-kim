@@ -21,7 +21,6 @@ watchlistSchema.statics.initializeWatchlist = async (userId) => {
 
 watchlistSchema.statics.findWatchlistById = async (userId) => {
     try{
-
         const watchlist = await Watchlist.findOne({ user: userId })
         
         return watchlist

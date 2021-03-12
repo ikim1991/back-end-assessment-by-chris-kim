@@ -31,5 +31,16 @@ portfolioSchema.statics.initializePortfolio = async (userId) => {
     }
 }
 
+portfolioSchema.statics.findPortfolioById = async (userId) => {
+    try{
+
+        const portfolio = await Portfolio.findOne({ user: userId })
+        
+        return portfolio
+    } catch(err){
+        return ApiError.internal("Something went Wrong... findPortfolioById")
+    }
+}
+
 const Portfolio = mongoose.model("Portfolio", portfolioSchema)
 export default Portfolio

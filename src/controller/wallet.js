@@ -4,10 +4,15 @@ import ApiError from '../error/ApiError.js'
 // User Wallet is Initialized Upon Registration
 
 export const getUserWallet = async (req, res, next) => {
+    
+    // GET: USER WALLET
+    
     try{
 
+        // UserId saved into Session Cookie
         const { userId } = req.session
         
+        // Find Wallet Tied to the User
         const wallet = await Wallet.findWalletById(userId)
 
         res.send(wallet)
@@ -18,7 +23,11 @@ export const getUserWallet = async (req, res, next) => {
 }
 
 export const loadBalance = async (req, res, next) => {
+
+    // POST: LOAD BALANCE
+
     try{
+        // Amount to Load Balance by. Sent in Client Request
         const { amount } = req.body
         const { userId } = req.session
 
@@ -52,7 +61,11 @@ export const loadBalance = async (req, res, next) => {
 }
 
 export const unloadBalance = async (req, res, next) => {
+
+    // POST: UNLOAD BALANCE
+
     try{
+        // Amount to Unload Balance by. Sent in Client Request
         const { amount } = req.body
         const { userId } = req.session
 
