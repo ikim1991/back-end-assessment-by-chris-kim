@@ -6,18 +6,6 @@ const portfolioSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "User"
-    },
-    cashBalance: {
-        type: Number,
-        default: 10000
-    },
-    bookValue: {
-        type: Number,
-        default: 0
-    },
-    marketValue: {
-        type: Number,
-        default: 0
     }
 })
 

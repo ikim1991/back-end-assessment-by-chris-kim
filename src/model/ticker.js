@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import ApiError from '../error/ApiError.js';
+import Wallet from './wallet.js';
 
 export const tickerSchema = new mongoose.Schema({
     ticker: {
@@ -28,6 +29,8 @@ export const tickerSchema = new mongoose.Schema({
     },
     shares: {Number},
     purchasePrice: {Number},
+    bookValue: {Number},
+    marketValue: {Number},
     portfolio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Portfolio"
@@ -126,22 +129,92 @@ tickerSchema.statics.removeTickerFromWatchlist = async (userId, ticker) => {
     }
 }
 
-tickerSchema.methods.buyStock = async function(shares, purchasePrice){
+tickerSchema.statics.getPortfolio = async (portfolioId) => {
     try{
+        const portfolio = await Ticker.find({ portfolio: portfolioId })
+
+        return portfolio
+    }catch(err){
+        return ApiError.internal("Something went Wrong... getPortfolio")
+    }
+}
+
+tickerSchema.statics.updateMarketValue = async (ticker, portfolioId) => {
+    try{
+        const stock = await Ticker.findOne({ ticker, portfolio: portfolioId })
+        const value = stock.price * stock.shares
+
+        await Ticker.findOneAndUpdate({ ticker, portfolio: portfolioId}, {marketValue: value})
+
+        return
+    }catch(err){
+        return ApiError.internal("Something went Wrong... getPortfolioHoldingsValue")
+    }
+}
+
+tickerSchema.statics.buyStock = async function(ticker, shares, userId, portfolioId){
+    try{
+
+        const stock = await Ticker.findOne({ ticker, user: userId })
+        const wallet = await Wallet.findWalletById(userId)
+        const purchasePrice = +stock.price
+        const bookValue = +purchasePrice * +shares
+
+        const sale = await wallet.sufficientFunds(bookValue)
+
+        if(!stock.portfolio && sale){
+            await Ticker.findOneAndUpdate({ ticker, user: userId }, { shares, purchasePrice, bookValue, portfolio: portfolioId })
+            await wallet.decrementBalance(bookValue)
+
+            return true
+        }
+
+        if(sale){
+            const totalBookValue = +stock.bookValue + +bookValue
+            const totalShares = +stock.shares + +shares
+            const averagePurchasePrice = (totalBookValue / totalShares)
+            await Ticker.findOneAndUpdate({ ticker, user: userId }, { bookValue: totalBookValue, portfolio: portfolioId, purchasePrice: averagePurchasePrice, shares: totalShares })
+            await wallet.decrementBalance(bookValue)
+
+            return true
+        }
+
+        return ApiError.badRequest("Insufficient Funds to Buy Stock...")
 
     }catch(err){
         return ApiError.internal("Something went Wrong... buyStock")
     }
 }
 
-tickerSchema.methods.sellStock = async function(shares, sellPrice){
+tickerSchema.statics.sellStock = async function(ticker, shares, userId, portfolioId){
     try{
-        
+        const stock = await Ticker.findOne({ ticker, user: userId })
+        const wallet = await Wallet.findWalletById(userId)
+        const sellValue = +stock.price * +shares
+
+        if(!portfolioId){
+            return ApiError.badRequest("You do Not Own the Stock...")
+        }
+
+        if(+shares > +stock.shares){
+            return ApiError.badRequest("Unable to sell Shares... Exceeding Number of Shares")
+        } else if(+shares === +stock.shares){
+            await Ticker.deleteOne({ ticker, user: userId })
+        } else{
+
+            const newBook = +stock.bookValue - +sellValue
+            const sharesAfterSale = +stock.shares - +shares
+            const averagePurchasePrice = (+newBook / +sharesAfterSale)
+            await Ticker.findOneAndUpdate({ ticker, user: userId }, { shares: sharesAfterSale, purchasePrice: averagePurchasePrice, bookValue: newBook })
+        }
+
+        await wallet.incrementBalance(sellValue)
+        return true
+
     }catch(err){
         return ApiError.internal("Something went Wrong... sellStock")
     }
 }
-
 
 const Ticker = mongoose.model("Ticker", tickerSchema)
 export default Ticker
