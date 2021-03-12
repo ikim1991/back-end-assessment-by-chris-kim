@@ -17,9 +17,9 @@ const getStockPrices = async (tickers = []) => {
 
             let url = ""
             if(ticker.market.toUpperCase() === 'V' || ticker.market.toUpperCase() === 'TO'){
-                url = `https://ca.finance.yahoo.com/quote/${ticker.symbol}.${ticker.market}`
+                url = `https://ca.finance.yahoo.com/quote/${ticker.ticker}.${ticker.market}`
             }else {
-                url = `https://ca.finance.yahoo.com/quote/${ticker.symbol}`
+                url = `https://ca.finance.yahoo.com/quote/${ticker.ticker}`
             }
 
 
@@ -30,17 +30,19 @@ const getStockPrices = async (tickers = []) => {
             // Adding suffix for Canadian Stocks while US Stocks does not require one
             if(ticker.market.toUpperCase() === 'V' || ticker.market.toUpperCase() === 'TO'){
                 stockPrices.push({
-                    ticker: `${ticker.symbol}.${ticker.market}`,
+                    ticker: `${ticker.ticker}.${ticker.market}`,
                     company: $('h1[class="D(ib) Fz(18px)"]').text().trim(),
                     price: $('span[class="Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"]').text().trim(),
                     change: $('div[class="D(ib) Mend(20px)"] span[data-reactid="33"]').text().trim(),
+                    market: ticker.market.toUpperCase()
                 })
             }else{
                 stockPrices.push({
-                    ticker: `${ticker.symbol}`,
+                    ticker: `${ticker.ticker}`,
                     company: $('h1[class="D(ib) Fz(18px)"]').text().trim(),
                     price: $('span[class="Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"]').text().trim(),
                     change: $('div[class="D(ib) Mend(20px)"] span[data-reactid="33"]').text().trim(),
+                    market: ticker.market.toUpperCase()
                 })
             }
         }

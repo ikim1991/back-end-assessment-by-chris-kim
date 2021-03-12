@@ -5,6 +5,7 @@ import sessions from './middleware/sessions.js';
 import userRouter from './router/user.js';
 import walletRouter from './router/wallet.js';
 import portfolioRouter from './router/portfolio.js';
+import watchlistRouter from './router/watchlist.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(sessions);
 app.use(userRouter)
 app.use(walletRouter)
 app.use(portfolioRouter)
+app.use(watchlistRouter)
 
 // Middleware for Error Handling
 app.use(errorHandler)

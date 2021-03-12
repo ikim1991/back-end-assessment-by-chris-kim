@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import ApiError from '../error/ApiError.js';
 
 mongoose.connect(
     process.env.MONGODB_URL,
@@ -11,4 +12,8 @@ mongoose.connect(
 
 mongoose.connection.on('open', () => {
   console.log("Connected to MongoDB...")
+})
+
+mongoose.connection.on('error', () => {
+  console.error(ApiError.internal('Connection Refused... MONGODB'))
 })
